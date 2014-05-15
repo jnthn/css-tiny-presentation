@@ -18,8 +18,8 @@ method read($file) {
 }
 
 # Create an object from a string
-sub read_string {
-	my $self = ref $_[0] ? shift : bless {}, shift;
+method read_string {
+	my $self = self // self.new;
 
 	# Flatten whitespace and remove /* comment */ style comments
 	my $string = shift;
