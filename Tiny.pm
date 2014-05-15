@@ -5,9 +5,11 @@ class CSS::Tiny:ver<1.19>;
 # Create an object from a file
 method read($file) {
 	# Check the file
-	fail "The file '$file' does not exist"          unless -e $file;
-	fail "'$file' is a directory, not a file"       unless -f _;
-	fail "Insufficient permissions to read '$file'" unless -r _;
+    given $file.IO {
+        fail "The file '$file' does not exist"          unless .e;
+        fail "'$file' is a directory, not a file"       unless .f;
+        fail "Insufficient permissions to read '$file'" unless .r;
+    }
 
 	# Read the file
 	local $/ = undef;
