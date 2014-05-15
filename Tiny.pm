@@ -1,7 +1,8 @@
+use v6;
+
 class CSS::Tiny:ver<1.19>;
 
 BEGIN {
-	require 5.004;
 	$CSS::Tiny::errstr  = '';
 }
 
