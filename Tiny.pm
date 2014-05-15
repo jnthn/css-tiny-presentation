@@ -107,8 +107,8 @@ sub write_string {
 }
 
 # Generate a HTML fragment for the CSS
-sub html {
-	my $css = $_[0]->write_string or return '';
+method html {
+	my $css = self.write_string or return '';
 	return "<style type=\"text/css\">\n<!--\n${css}-->\n</style>";
 }
 
