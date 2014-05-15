@@ -33,7 +33,7 @@ method read_string($string is copy) {
 		# Split in such a way as to support grouped styles
 		my $style      = $1;
 		my $properties = $2;
-		$style =~ s/\s{2,}/ /g;
+		$style ~~ s:g/\s ** 2..*/ /;
 		my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
 		foreach ( @styles ) { $self->{$_} ||= {} }
 
