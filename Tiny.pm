@@ -26,8 +26,8 @@ method read_string($string is copy) {
 
 	# Split into styles
 	for $string.split(/<?after '}'>/).grep(/\S/) {
-		unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
-			return $self->_error( "Invalid or unexpected style data '$_'" );
+		unless /^\s*([^{]+?)\s*\{(.*)\}\s*$/ {
+			fail "Invalid or unexpected style data '$_'";
 		}
 
 		# Split in such a way as to support grouped styles
