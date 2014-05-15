@@ -9,9 +9,9 @@ BEGIN {
 # Create an object from a file
 method read($file) {
 	# Check the file
-	return $class->_error( "The file '$file' does not exist" )          unless -e $file;
-	return $class->_error( "'$file' is a directory, not a file" )       unless -f _;
-	return $class->_error( "Insufficient permissions to read '$file'" ) unless -r _;
+	fail "The file '$file' does not exist"          unless -e $file;
+	fail "'$file' is a directory, not a file"       unless -f _;
+	fail "Insufficient permissions to read '$file'" unless -r _;
 
 	# Read the file
 	local $/ = undef;
