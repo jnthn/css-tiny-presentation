@@ -40,11 +40,11 @@ method read_string($string is copy) {
 		for @styles { $self{$_} //= {} }
 
 		# Split into properties
-		foreach ( grep { /\S/ } split /\;/, $properties ) {
-			unless ( /^\s*([\w._-]+)\s*:\s*(.*?)\s*$/ ) {
-				return $self->_error( "Invalid or unexpected property '$_' in style '$style'" );
+		for $properties.split(';').grep(/\S/) {
+			unless /^ \s* (<[\w._-]>+) \s* ':' \s* (.*?) \s* $/ {
+				fail "Invalid or unexpected property '$_' in style '$style'";
 			}
-			foreach ( @styles ) { $self->{$_}->{lc $1} = $2 }
+			for @styles { $self{$_}{lc $0} = ~$1 }
 		}
 	}
 
