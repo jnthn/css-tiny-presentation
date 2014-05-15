@@ -73,8 +73,7 @@ method write($file) {
 }
 
 # Save an object to a string
-sub write_string {
-	my $self = shift;
+method write_string {
 
 	# Iterate over the styles
 	# Note: We use 'reverse' in the sort to avoid a special case related
