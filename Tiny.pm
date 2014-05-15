@@ -26,7 +26,7 @@ method read_string($string is copy) {
 
 	# Split into styles
 	for $string.split(/<?after '}'>/).grep(/\S/) {
-		unless /^ \s* ([^{]+?) \s* \{ (.*) \} \s* $/ {
+		unless /^ \s* ([^{]+?) \s* '{' (.*) '}' \s* $/ {
 			fail "Invalid or unexpected style data '$_'";
 		}
 
