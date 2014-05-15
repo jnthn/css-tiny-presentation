@@ -2,6 +2,8 @@ use v6;
 
 class CSS::Tiny:ver<1.19>;
 
+has %!styles handles <at_key assign_key list pairs keys values kv>;
+
 # Create an object from a file
 method read($file) {
 	# Check the file
