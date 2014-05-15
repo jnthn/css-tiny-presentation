@@ -25,7 +25,7 @@ method read_string($string is copy) {
 	$string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
 
 	# Split into styles
-	for grep { /\S/ } split /(?<=\})/, $string {
+	for $string.split(/(?<=\})/).grep(/\S/) {
 		unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
 			return $self->_error( "Invalid or unexpected style data '$_'" );
 		}
