@@ -1,4 +1,4 @@
-package CSS::Tiny;
+class CSS::Tiny;
 
 BEGIN {
 	require 5.004;
