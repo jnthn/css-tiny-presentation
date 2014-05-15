@@ -113,9 +113,9 @@ method html {
 }
 
 # Generate an xhtml fragment for the CSS
-sub xhtml {
-	my $css = $_[0]->write_string or return '';
-	return "<style type=\"text/css\">\n/* <![CDATA[ */\n${css}/* ]]> */\n</style>";
+method xhtml {
+	my $css = self.write_string or return '';
+	return "<style type=\"text/css\">\n/* <![CDATA[ */\n{$css}/* ]]> */\n</style>";
 }
 
 # Error handling
