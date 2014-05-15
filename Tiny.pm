@@ -37,7 +37,7 @@ method read_string($string is copy) {
 		my $properties = ~$1;
 		$style ~~ s:g/\s ** 2..*/ /;
 		my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).map({ s:g/\s+/ / });
-		foreach ( @styles ) { $self->{$_} ||= {} }
+		for @styles { $self{$_} //= {} }
 
 		# Split into properties
 		foreach ( grep { /\S/ } split /\;/, $properties ) {
