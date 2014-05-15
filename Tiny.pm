@@ -14,7 +14,7 @@ method read($file) {
 	# Read the file
     my $contents = try { slurp($file) } orelse fail $!;
 
-	$class->read_string( $contents )
+	self.read_string($contents)
 }
 
 # Create an object from a string
