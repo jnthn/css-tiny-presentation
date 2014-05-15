@@ -2,10 +2,6 @@ use v6;
 
 class CSS::Tiny:ver<1.19>;
 
-BEGIN {
-	$CSS::Tiny::errstr  = '';
-}
-
 # Create an object from a file
 method read($file) {
 	# Check the file
@@ -114,9 +110,5 @@ method xhtml {
 	my $css = self.write_string or return '';
 	return "<style type=\"text/css\">\n/* <![CDATA[ */\n{$css}/* ]]> */\n</style>";
 }
-
-# Error handling
-sub errstr { $CSS::Tiny::errstr }
-sub _error { $CSS::Tiny::errstr = $_[1]; undef }
 
 1;
