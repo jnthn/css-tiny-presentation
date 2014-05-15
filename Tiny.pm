@@ -1,6 +1,5 @@
 package CSS::Tiny;
 
-use strict;
 BEGIN {
 	require 5.004;
 	$CSS::Tiny::VERSION = '1.19';
