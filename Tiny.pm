@@ -80,10 +80,10 @@ method write_string {
 	# to A:hover even though the file ends up backwards and looks funny.
 	# See http://www.w3.org/TR/CSS2/selector.html#dynamic-pseudo-classes
 	my $contents = '';
-	foreach my $style ( reverse sort keys %$self ) {
+	for self.keys.sort.reverse -> $style {
 		$contents .= "$style {\n";
-		foreach ( sort keys %{ $self->{$style} } ) {
-			$contents .= "\t" . lc($_) . ": $self->{$style}->{$_};\n";
+		for self{$style}.keys.sort {
+			$contents .= "\t" . lc($_) . ": self{$style}{$_};\n";
 		}
 		$contents .= "}\n";
 	}
