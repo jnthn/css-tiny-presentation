@@ -12,10 +12,7 @@ method read($file) {
     }
 
 	# Read the file
-	local $/ = undef;
-	open( CSS, $file ) or return $class->_error( "Failed to open file '$file': $!" );
-	my $contents = <CSS>;
-	close( CSS );
+    my $contents = try { slurp($file) } orelse fail $!;
 
 	$class->read_string( $contents )
 }
