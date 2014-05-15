@@ -6,9 +6,6 @@ BEGIN {
 	$CSS::Tiny::errstr  = '';
 }
 
-# Create an empty object
-sub new { bless {}, shift }
-
 # Create an object from a file
 sub read {
 	my $class = shift;
