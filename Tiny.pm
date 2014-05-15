@@ -18,13 +18,11 @@ method read($file) {
 }
 
 # Create an object from a string
-method read_string {
+method read_string($string) {
 	my $self = self // self.new;
 
 	# Flatten whitespace and remove /* comment */ style comments
-	my $string = shift;
-	$string =~ tr/\n\t/  /;
-	$string =~ s!/\*.*?\*\/!!g;
+	$string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
 
 	# Split into styles
 	foreach ( grep { /\S/ } split /(?<=\})/, $string ) {
