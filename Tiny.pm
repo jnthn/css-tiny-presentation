@@ -7,11 +7,8 @@ BEGIN {
 }
 
 # Create an object from a file
-sub read {
-	my $class = shift;
-
+method read($file) {
 	# Check the file
-	my $file = shift or return $class->_error( 'You did not specify a file name' );
 	return $class->_error( "The file '$file' does not exist" )          unless -e $file;
 	return $class->_error( "'$file' is a directory, not a file" )       unless -f _;
 	return $class->_error( "Insufficient permissions to read '$file'" ) unless -r _;
