@@ -81,11 +81,11 @@ method write_string {
 	# See http://www.w3.org/TR/CSS2/selector.html#dynamic-pseudo-classes
 	my $contents = '';
 	for self.keys.sort.reverse -> $style {
-		$contents .= "$style \{\n";
+		$contents ~= "$style \{\n";
 		for self{$style}.keys.sort {
-			$contents .= "\t" . lc($_) . ": {self{$style}{$_}};\n";
+			$contents ~= "\t" ~ lc($_) ~ ": {self{$style}{$_}};\n";
 		}
-		$contents .= "}\n";
+		$contents ~= "}\n";
 	}
 
 	return $contents;
