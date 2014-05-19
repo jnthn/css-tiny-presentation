@@ -51,10 +51,8 @@ method read_string($string is copy) {
 	$self
 }
 
-# Copy an object, using Clone.pm if available
-BEGIN { local $@; eval "use Clone 'clone';"; eval <<'END_PERL' if $@; }
-sub clone {
-	my $self = shift;
+# Copy an object
+method clone {
 	my $copy = ref($self)->new;
 	foreach my $key ( keys %$self ) {
 		my $section = $self->{$key};
@@ -65,7 +63,6 @@ sub clone {
 	}
 	$copy;
 }
-END_PERL
 
 # Save an object to a file
 method write($file) {
