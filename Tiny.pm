@@ -95,5 +95,3 @@ method xhtml {
 	my $css = self.write_string or return '';
 	return "<style type=\"text/css\">\n/* <![CDATA[ */\n{$css}/* ]]> */\n</style>";
 }
-
-1;
