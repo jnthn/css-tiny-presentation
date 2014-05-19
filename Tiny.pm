@@ -18,7 +18,7 @@ method read($file) {
 }
 
 # Create an object from a string
-method read_string($string) {
+method read_string($string is copy) {
 	my $self = self // self.new;
 
 	# Flatten whitespace and remove /* comment */ style comments
