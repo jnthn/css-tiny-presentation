@@ -31,8 +31,8 @@ method read_string($string is copy) {
 		}
 
 		# Split in such a way as to support grouped styles
-		my $style      = $1;
-		my $properties = $2;
+		my $style      = ~$0;
+		my $properties = ~$1;
 		$style ~~ s:g/\s ** 2..*/ /;
 		my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
 		foreach ( @styles ) { $self->{$_} ||= {} }
