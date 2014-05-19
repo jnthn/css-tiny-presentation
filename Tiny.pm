@@ -53,15 +53,11 @@ method read_string($string is copy) {
 
 # Copy an object
 method clone {
-	my $copy = ref($self)->new;
-	foreach my $key ( keys %$self ) {
-		my $section = $self->{$key};
-		$copy->{$key} = {};
-		foreach ( keys %$section ) {
-			$copy->{$key}->{$_} = $section->{$_};
-		}
-	}
-	$copy;
+    my %styles_copy;
+    for %!styles.kv -> $style, %properties {
+        %styles_copy{$style} = { %properties };
+    }
+    self.new(styles => %styles_copy)
 }
 
 # Save an object to a file
