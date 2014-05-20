@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>Learning By Porting a Perl 5 module to Perl 6</title>
+		<title>Learning by Porting a Perl 5 module to Perl 6</title>
 
 		<meta name="description" content="Learning By Porting a Perl 5 module to Perl 6">
 		<meta name="author" content="Jonathan Worthington">
@@ -43,25 +43,91 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
-					<h1>Learning By Porting a Perl 5 module to Perl 6</h1>
+					<h1>Learning by Porting a Perl 5 module to Perl 6</h1>
 					<p>
-						<small>Jonathan Worthington</small>
+						Jonathan Worthington
 					</p>
 				</section>
 
 				<section>
-					<h2>Why?</h2>
-					<p>
-						
-					</p>
+					<h2>The Plan</h2>
+					
+                    <p>Take the <code>CSS::Tiny</code> CPAN module by ADAMK</p>
+                    
+                    <p>Chose a module by a known experienced Perl 5 programmer, in
+                      hope of showing good Perl 5 being translated into good Perl 6</p>
+                    
+                    <p>Fairly typical mix of text processing, basic OO programming,
+                      a little file I/O, and straightforward data structures</p>
 				</section>
+                
+                <section>
+                    <h2>CSS::Tiny</h2>
+                    
+                    <p>Basic CSS parser and generator</p>
+                    
+                    <p>Can parse and/or save to a file using <code>read</code> and
+                      <code>write</code> methods</p>
+                    
+                    <p>Also can parse a string or produce one, using <code>read_string</code>
+                      and <code>write_string</code></p>
+                    
+                    <p>These create objects, which function like a 2 level hash: styles at
+                      the top level, and the properties within each style's hash</p>
+                </section>
 
                 <!--STORY-->
 
 				<section>
-					<h1>Conclusions</h1>
+					<h1>Results</h1>
+                    
+                    <p>Started with 131 lines, ended up with 100.</p>
+                    
+                    <p>Initial port - not using grammars - in some ways a fairly
+                    mechanical set of steps; after a while, they will become quite
+                    natural and - in some cases - maybe even partially automatable.</p>
+                    
+                    <p>The move to a grammar needed some more skills, but led to an
+                    algorithmic improvement to the code: rather than making multiple
+                    passes through the data, we make a single one.</p>
+                    
+                    <p>We also better separated concerns better; the parsing was
+                    neatly decoupled from the building up of the result hash thanks
+                    to grammars and <code>Match</code> objects.</p>
 				</section>
+                
+                <section>
+                    <h2>v5</h2>
+                    
+                    <p>One exciting direction for aiding porting is the <code>v5</code>
+                    module.</p>
+                    
+                    <p>Can mix Perl 5 and Perl 6 within a single file, meaning that a
+                    bit can be ported at a time</p>
+                    
+                    <p>How successful this approach will be depends on the module, and
+                    if the port is mostly transliteration or needs a rethink of the
+                    module's API</p>
+                </section>
+                
+                <section>
+                    <h2>Conclusions</h2>
+                    
+                    <p>Perl 6 is ready for many kinds of modules to be ported to it</p>
+                    
+                    <p>It's also a great way to learn Perl 6</p>
+                    
+                    <p>Porting the test suite first can allow working test-first on
+                    the port also</p>
+                </section>
 
+                <section>
+                    <h2>Go forth and port!</h2>
+                    
+                    <p>Thanks for listening!</p>
+                    
+                    <p>Have fun!</p>
+                </section>
 			</div>
 
 		</div>
