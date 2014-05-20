@@ -41,10 +41,9 @@ method read_string($string is copy) {
 	# Split into styles
 	for SimpleCSS.parse($string)<style>.list -> $s {
 		# Split in such a way as to support grouped styles
-		my $style      = ~$s[0];
+		my $style      = $s[0];
 		my $properties = ~$s[1];
-		$style ~~ s:g/\s ** 2..*/ /;
-		my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).map({ s:g/\s+/ / });
+		my @styles     = $style<style_name>.map(~*);
 		for @styles { $self{$_} //= {} }
 
 		# Split into properties
