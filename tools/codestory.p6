@@ -71,7 +71,7 @@ class CommitBuilder {
 }
 
 sub parse_log() {
-    my $log = qx{git log --reverse -p};
+    my $log = qx{git log --reverse -p --grep="^[^[][^m][^e]"};
     return CommitLog.parse($log, :actions(CommitBuilder)).made;
 }
 
@@ -93,8 +93,6 @@ sub make_html(@commits) {
         state $prev_commit = '';
         next unless $prev_commit;
         LEAVE $prev_commit = $commit.sha1;
-
-        next if $title ~~ /'[meta]'/;
         
         my @diff_lines;
         for $commit.file_diffs.kv -> $file, @lines {
