@@ -24,13 +24,13 @@ method read_string($string is copy) {
 	my $self = self // self.new;
 
     my grammar SimpleCSS {
-        token TOP {
-            <style>* [ $ || { die "Failed to parse CSS" } ]
+        rule TOP {
+            <?> <style>* [ $ || { die "Failed to parse CSS" } ]
         }
-        token style {
-            \s* <style_name>+ %% [\s* ',' \s* ] \s* '{'
-                \s* <property>+ %% [\s* ';' \s* ] \s*
-            '}' \s*
+        rule style {
+            <style_name>+ %% [ <?> ',' ] '{'
+                <property>+ %% [ <?> ';' ]
+            '}'
         }
         token style_name { [ <-[\s,{]>+ ]+ % [\s+] }
         rule property {
