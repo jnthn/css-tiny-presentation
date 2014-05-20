@@ -20,7 +20,7 @@ method read($file) {
 }
 
 # Create an object from a string
-method read_string($string is copy) {
+method read_string($string) {
 	my $self = self // self.new;
 
     my grammar SimpleCSS {
