@@ -14,7 +14,7 @@ sub MAIN(
 grammar CommitLog {
     token TOP {
         <commit>*
-        [ $ || { die "Failed to parse commit log" } ]
+        [ $ || { die "Failed to parse commit log at $/.CURSOR.target.substr($/.CURSOR.pos, 20)..." } ]
     }
 
     token commit {
@@ -26,7 +26,7 @@ grammar CommitLog {
         \N* \n
         $<description>=[<.commit_line>*]
         \s*
-        <diff>+
+        <diff>*
         \s*
     }
 
