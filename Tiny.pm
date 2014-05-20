@@ -27,6 +27,11 @@ method read_string($string is copy) {
         token TOP {
             <style>* [ $ || { die "Failed to parse CSS" } ]
         }
+        token style {
+            \s* (<-[{]>+) '{'
+                (<-[}]>*)
+            '}' \s*
+        }
     }
 
 	# Flatten whitespace and remove /* comment */ style comments
