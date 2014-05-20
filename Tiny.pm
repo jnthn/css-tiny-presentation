@@ -29,10 +29,13 @@ method read_string($string is copy) {
         }
         token style {
             \s* (<style_name>+ %% [\s* ',' \s* ]) \s* '{'
-                (<-[}]>*)
+                \s* (<property>+ %% [\s* ';' \s* ]) \s*
             '}' \s*
         }
         token style_name { [ <-[\s,{]>+ ]+ % [\s+] }
+        token property {
+            (<[\w.-]>+) \s* ':' \s* (<-[\s;]>+)
+        }
     }
 
 	# Flatten whitespace and remove /* comment */ style comments
