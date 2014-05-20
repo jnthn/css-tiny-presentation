@@ -38,14 +38,10 @@ method read_string($string is copy) {
 	$string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
 
 	# Split into styles
-	for $string.split(/<?after '}'>/).grep(/\S/) {
-		unless /^ \s* (<-[{]>+?) \s* '{' (.*) '}' \s* $/ {
-			fail "Invalid or unexpected style data '$_'";
-		}
-
+	for SimpleCSS.parse($string)<style>.list -> $s {
 		# Split in such a way as to support grouped styles
-		my $style      = ~$0;
-		my $properties = ~$1;
+		my $style      = ~$s[0];
+		my $properties = ~$s[1];
 		$style ~~ s:g/\s ** 2..*/ /;
 		my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).map({ s:g/\s+/ / });
 		for @styles { $self{$_} //= {} }
