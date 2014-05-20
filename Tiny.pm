@@ -45,16 +45,13 @@ method read_string($string is copy) {
 	for SimpleCSS.parse($string)<style>.list -> $s {
 		# Split in such a way as to support grouped styles
 		my $style      = $s[0];
-		my $properties = ~$s[1];
+		my $properties = $s[1];
 		my @styles     = $style<style_name>.map(~*);
 		for @styles { $self{$_} //= {} }
 
 		# Split into properties
-		for $properties.split(';').grep(/\S/) {
-			unless /^ \s* (<[\w._-]>+) \s* ':' \s* (.*?) \s* $/ {
-				fail "Invalid or unexpected property '$_' in style '$style'";
-			}
-			for @styles { $self{$_}{lc $0} = ~$1 }
+		for $properties<property>.list -> $p {
+			for @styles { $self{$_}{lc $p[0]} = ~$p[1] }
 		}
 	}
 
