@@ -34,7 +34,7 @@ method read_string($string is copy) {
         }
         token style_name { [ <-[\s,{]>+ ]+ % [\s+] }
         token property {
-            (<[\w.-]>+) \s* ':' \s* (<-[\s;]>+)
+            $<key>=[<[\w.-]>+] \s* ':' \s* $<val>=[<-[\s;]>+]
         }
     }
 
@@ -49,7 +49,7 @@ method read_string($string is copy) {
 
 		# Split into properties
 		for $s<property>.list -> $p {
-			for @styles { $self{$_}{lc $p[0]} = ~$p[1] }
+			for @styles { $self{$_}{lc $p<key>} = ~$p<val> }
 		}
 	}
 
