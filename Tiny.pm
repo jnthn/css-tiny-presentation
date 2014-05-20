@@ -33,9 +33,10 @@ method read_string($string is copy) {
             '}' \s*
         }
         token style_name { [ <-[\s,{]>+ ]+ % [\s+] }
-        token property {
-            $<key>=[<[\w.-]>+] \s* ':' \s* $<val>=[<-[\s;]>+]
+        rule property {
+            $<key>=[<[\w.-]>+] ':' $<val>=[<-[\s;]>+]
         }
+        token ws { \s* }
     }
 
 	# Flatten whitespace and remove /* comment */ style comments
