@@ -39,13 +39,13 @@ method read_string($string) {
         token ws { \s* | '/*' .+? '*/' }
     }
 
-	# Split into styles
+	# Parse each style.
 	for SimpleCSS.parse($string)<style>.list -> $s {
-		# Split in such a way as to support grouped styles
+		# Initialize empty hash per style.
 		my @styles = $s<style_name>.map(~*);
 		for @styles { $self{$_} //= {} }
 
-		# Split into properties
+		# Add properties.
 		for $s<property>.list -> $p {
 			for @styles { $self{$_}{lc $p<key>} = ~$p<val> }
 		}
