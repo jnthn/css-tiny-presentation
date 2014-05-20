@@ -36,11 +36,8 @@ method read_string($string is copy) {
         rule property {
             $<key>=[<[\w.-]>+] ':' $<val>=[<-[\s;]>+]
         }
-        token ws { \s* }
+        token ws { \s* | '/*' .+? '*/' }
     }
-
-	# Flatten whitespace and remove /* comment */ style comments
-	$string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
 
 	# Split into styles
 	for SimpleCSS.parse($string)<style>.list -> $s {
