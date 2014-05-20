@@ -23,6 +23,12 @@ method read($file) {
 method read_string($string is copy) {
 	my $self = self // self.new;
 
+    my grammar SimpleCSS {
+        token TOP {
+            <style>* [ $ || { die "Failed to parse CSS" } ]
+        }
+    }
+
 	# Flatten whitespace and remove /* comment */ style comments
 	$string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
 
