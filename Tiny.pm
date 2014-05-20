@@ -28,8 +28,8 @@ method read_string($string is copy) {
             <style>* [ $ || { die "Failed to parse CSS" } ]
         }
         token style {
-            \s* (<style_name>+ %% [\s* ',' \s* ]) \s* '{'
-                \s* (<property>+ %% [\s* ';' \s* ]) \s*
+            \s* <style_name>+ %% [\s* ',' \s* ] \s* '{'
+                \s* <property>+ %% [\s* ';' \s* ] \s*
             '}' \s*
         }
         token style_name { [ <-[\s,{]>+ ]+ % [\s+] }
@@ -44,13 +44,11 @@ method read_string($string is copy) {
 	# Split into styles
 	for SimpleCSS.parse($string)<style>.list -> $s {
 		# Split in such a way as to support grouped styles
-		my $style      = $s[0];
-		my $properties = $s[1];
-		my @styles     = $style<style_name>.map(~*);
+		my @styles = $s<style_name>.map(~*);
 		for @styles { $self{$_} //= {} }
 
 		# Split into properties
-		for $properties<property>.list -> $p {
+		for $s<property>.list -> $p {
 			for @styles { $self{$_}{lc $p[0]} = ~$p[1] }
 		}
 	}
