@@ -1,0 +1,1273 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Learning by Porting a Perl 5 module to Perl 6</title>
+
+		<meta name="description" content="Learning By Porting a Perl 5 module to Perl 6">
+		<meta name="author" content="Jonathan Worthington">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/solarized.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h2>Learning by Porting a<br />Perl 5 module to Perl 6</h2>
+					
+                    <p>
+                        <img src="cover.jpg" height="400" />
+                    </p>
+                    
+                    <p>
+						Jonathan Worthington
+					</p>
+				</section>
+
+				<section>
+					<h2>The Plan</h2>
+					
+                    <p>Take the <code>CSS::Tiny</code> CPAN module by ADAMK</p>
+                    
+                    <p>Chose a module by a known experienced Perl 5 programmer, in
+                      hope of showing good Perl 5 being translated into good Perl 6</p>
+                    
+                    <p>Fairly typical mix of text processing, basic OO programming,
+                      a little file I/O, and straightforward data structures</p>
+				</section>
+                
+                <section>
+                    <h2>CSS::Tiny</h2>
+                    
+                    <p>Basic CSS parser and generator</p>
+                    
+                    <p>Can parse and/or save to a file using <code>read</code> and
+                      <code>write</code> methods</p>
+                    
+                    <p>Also can parse a string or produce one, using <code>read_string</code>
+                      and <code>write_string</code></p>
+                    
+                    <p>These create objects, which function like a 2 level hash: styles at
+                      the top level, and the properties within each style's hash</p>
+                </section>
+
+                    <section>
+        <h2> <code>use strict;</code> is the default </h2>
+        <p>     Therefore, we can simply remove it, and have the familiar protections.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -1,6 +1,5 @@
+</span><span style="color: black"> package CSS::Tiny;
+</span><span style="color: black"> 
+</span><span style="color: red">-use strict;
+</span><span style="color: black"> BEGIN {
+</span><span style="color: black">     require 5.004;
+</span><span style="color: black">     $CSS::Tiny::VERSION = '1.19';
+</span> </pre>
+    </section>
+    <section>
+        <h2> It's a <code>class</code>, so say so </h2>
+        <p>     In Perl 6, we have a <code>class</code> keyword for denoting classes.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -1,4 +1,4 @@
+</span><span style="color: red">-package CSS::Tiny;
+</span><span style="color: green">+class CSS::Tiny;
+</span><span style="color: black"> 
+</span><span style="color: black"> BEGIN {
+</span><span style="color: black">     require 5.004;
+</span> </pre>
+    </section>
+    <section>
+        <h2> Versions are part of the class name. </h2>
+        <p>     We attach them using the <code>:ver&lt;...&gt;</code> adverb. Adverbs, using the colon
+    pair syntax, show up in many places in Perl 6. For example, the <code>+</code>
+    infix operator is really named <code>infix:&lt;+&gt;</code>.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -1,8 +1,7 @@
+</span><span style="color: red">-class CSS::Tiny;
+</span><span style="color: green">+class CSS::Tiny:ver&lt;1.19&gt;;
+</span><span style="color: black"> 
+</span><span style="color: black"> BEGIN {
+</span><span style="color: black">     require 5.004;
+</span><span style="color: red">-    $CSS::Tiny::VERSION = '1.19';
+</span><span style="color: black">     $CSS::Tiny::errstr  = '';
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> We inherit a default <code>new</code> constructor </h2>
+        <p>     This is inherited from <code>Mu</code>, the base of all classes. Therefore, we
+    can simply delete it.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -6,9 +6,6 @@ BEGIN {
+</span><span style="color: black">     $CSS::Tiny::errstr  = '';
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: red">-# Create an empty object
+</span><span style="color: red">-sub new { bless {}, shift }
+</span><span style="color: red">-
+</span><span style="color: black"> # Create an object from a file
+</span><span style="color: black"> sub read {
+</span><span style="color: black">     my $class = shift;
+</span> </pre>
+    </section>
+    <section>
+        <h2> Basic method transformation </h2>
+        <p>     We replace <code>sub</code> with <code>method</code>. There's no need to unpack the invocant
+    manually; it is available using the symbol <code>self</code>.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -107,8 +107,8 @@ sub write_string {
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Generate a HTML fragment for the CSS
+</span><span style="color: red">-sub html {
+</span><span style="color: red">-    my $css = $_[0]-&gt;write_string or return '';
+</span><span style="color: green">+method html {
+</span><span style="color: green">+    my $css = self.write_string or return '';
+</span><span style="color: black">     return "&lt;style type=\"text/css\"&gt;\n&lt;!--\n${css}--&gt;\n&lt;/style&gt;";
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> Closure interpolation </h2>
+        <p>     In Perl 6, we no longer have the <code>${...}</code> syntax. In fact, here we've
+    no great need to use anything other than the variable to interpolate,
+    as there is no ambiguity. However, we can interpolate blocks inside
+    double-quoted strings in Perl 6, and here may do it for readability.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -109,7 +109,7 @@ sub write_string {
+</span><span style="color: black"> # Generate a HTML fragment for the CSS
+</span><span style="color: black"> method html {
+</span><span style="color: black">     my $css = self.write_string or return '';
+</span><span style="color: red">-    return "&lt;style type=\"text/css\"&gt;\n&lt;!--\n${css}--&gt;\n&lt;/style&gt;";
+</span><span style="color: green">+    return "&lt;style type=\"text/css\"&gt;\n&lt;!--\n{$css}--&gt;\n&lt;/style&gt;";
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Generate an xhtml fragment for the CSS
+</span> </pre>
+    </section>
+    <section>
+        <h2> Rinse, repeat </h2>
+        <p>     We perform the same pair of transforms again on the <code>xhtml</code> method.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -113,9 +113,9 @@ method html {
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Generate an xhtml fragment for the CSS
+</span><span style="color: red">-sub xhtml {
+</span><span style="color: red">-    my $css = $_[0]-&gt;write_string or return '';
+</span><span style="color: red">-    return "&lt;style type=\"text/css\"&gt;\n/* &lt;![CDATA[ */\n${css}/* ]]&gt; */\n&lt;/style&gt;";
+</span><span style="color: green">+method xhtml {
+</span><span style="color: green">+    my $css = self.write_string or return '';
+</span><span style="color: green">+    return "&lt;style type=\"text/css\"&gt;\n/* &lt;![CDATA[ */\n{$css}/* ]]&gt; */\n&lt;/style&gt;";
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Error handling
+</span> </pre>
+    </section>
+    <section>
+        <h2> Signatures eliminate unpacking and checks </h2>
+        <p>     Once again, we can use <code>method</code>, but this time we give it a signature.
+    This saves us a line of validation.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -7,11 +7,8 @@ BEGIN {
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Create an object from a file
+</span><span style="color: red">-sub read {
+</span><span style="color: red">-    my $class = shift;
+</span><span style="color: red">-
+</span><span style="color: green">+method read($file) {
+</span><span style="color: black">     # Check the file
+</span><span style="color: red">-    my $file = shift or return $class-&gt;_error( 'You did not specify a file name' );
+</span><span style="color: black">     return $class-&gt;_error( "The file '$file' does not exist" )          unless -e $file;
+</span><span style="color: black">     return $class-&gt;_error( "'$file' is a directory, not a file" )       unless -f _;
+</span><span style="color: black">     return $class-&gt;_error( "Insufficient permissions to read '$file'" ) unless -r _;
+</span> </pre>
+    </section>
+    <section>
+        <h2> Just <code>fail</code> it </h2>
+        <p>     We often want to present the caller with a choice of whether to die
+    with an exception or return an undefined value. In Perl 6, <code>Failure</code>
+    fills this role, serving as a lazy exception. Testing it as a boolean
+    or for definedness "disarms" it; trying to use it will throw.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -9,9 +9,9 @@ BEGIN {
+</span><span style="color: black"> # Create an object from a file
+</span><span style="color: black"> method read($file) {
+</span><span style="color: black">     # Check the file
+</span><span style="color: red">-    return $class-&gt;_error( "The file '$file' does not exist" )          unless -e $file;
+</span><span style="color: red">-    return $class-&gt;_error( "'$file' is a directory, not a file" )       unless -f _;
+</span><span style="color: red">-    return $class-&gt;_error( "Insufficient permissions to read '$file'" ) unless -r _;
+</span><span style="color: green">+    fail "The file '$file' does not exist"          unless -e $file;
+</span><span style="color: green">+    fail "'$file' is a directory, not a file"       unless -f _;
+</span><span style="color: green">+    fail "Insufficient permissions to read '$file'" unless -r _;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Read the file
+</span><span style="color: black">     local $/ = undef;
+</span> </pre>
+    </section>
+    <section>
+        <h2> Tossing custom error infrastructure </h2>
+        <p>     Thanks to our choice to adopt <code>fail</code>, we can dispose of some of the
+    Perl 5 lazy error boilerplate.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -2,10 +2,6 @@ use v6;
+</span><span style="color: black"> 
+</span><span style="color: black"> class CSS::Tiny:ver&lt;1.19&gt;;
+</span><span style="color: black"> 
+</span><span style="color: red">-BEGIN {
+</span><span style="color: red">-    $CSS::Tiny::errstr  = '';
+</span><span style="color: red">-}
+</span><span style="color: red">-
+</span><span style="color: black"> # Create an object from a file
+</span><span style="color: black"> method read($file) {
+</span><span style="color: black">     # Check the file
+</span><span style="color: teal">@@ -115,8 +111,4 @@ method xhtml {
+</span><span style="color: black">     return "&lt;style type=\"text/css\"&gt;\n/* &lt;![CDATA[ */\n{$css}/* ]]&gt; */\n&lt;/style&gt;";
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: red">-# Error handling
+</span><span style="color: red">-sub errstr { $CSS::Tiny::errstr }
+</span><span style="color: red">-sub _error { $CSS::Tiny::errstr = $_[1]; undef }
+</span><span style="color: red">-
+</span><span style="color: black"> 1;
+</span> </pre>
+    </section>
+    <section>
+        <h2> Being less stringly typed </h2>
+        <p>     Strings don't magically pun as filenames everywhere in Perl 6. Instead
+    we should use <code>.IO</code> to turn a string path into an IO handle. Then we do
+    the checks on it as methods. The <code>given</code> syntax helps here, and we don't
+    have the <code>-e</code> special-case syntax, nor the <code>_</code> trick, to remember now.
+    Note that <code>.e</code> is really <code>$_.e</code>.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -5,9 +5,11 @@ class CSS::Tiny:ver&lt;1.19&gt;;
+</span><span style="color: black"> # Create an object from a file
+</span><span style="color: black"> method read($file) {
+</span><span style="color: black">     # Check the file
+</span><span style="color: red">-    fail "The file '$file' does not exist"          unless -e $file;
+</span><span style="color: red">-    fail "'$file' is a directory, not a file"       unless -f _;
+</span><span style="color: red">-    fail "Insufficient permissions to read '$file'" unless -r _;
+</span><span style="color: green">+    given $file.IO {
+</span><span style="color: green">+        fail "The file '$file' does not exist"          unless .e;
+</span><span style="color: green">+        fail "'$file' is a directory, not a file"       unless .f;
+</span><span style="color: green">+        fail "Insufficient permissions to read '$file'" unless .r;
+</span><span style="color: green">+    }
+</span><span style="color: black"> 
+</span><span style="color: black">     # Read the file
+</span><span style="color: black">     local $/ = undef;
+</span> </pre>
+    </section>
+    <section>
+        <h2> <code>try</code> to <code>slurp</code> </h2>
+        <p>     We can replace all of the file reading code with a simple <code>slurp</code> -
+    but that throws exceptions, and the module should either do that or
+    be consistent in its lazy failing. So, we'll wrap it in a <code>try</code>,
+    catching exceptions and leaving them in <code>$!</code>.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -12,10 +12,7 @@ method read($file) {
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: black">     # Read the file
+</span><span style="color: red">-    local $/ = undef;
+</span><span style="color: red">-    open( CSS, $file ) or return $class-&gt;_error( "Failed to open file '$file': $!" );
+</span><span style="color: red">-    my $contents = &lt;CSS&gt;;
+</span><span style="color: red">-    close( CSS );
+</span><span style="color: green">+    my $contents = try { slurp($file) } orelse fail $!;
+</span><span style="color: black"> 
+</span><span style="color: black">     $class-&gt;read_string( $contents )
+</span><span style="color: black"> }
+</span> </pre>
+    </section>
+    <section>
+        <h2> Tweak the method call </h2>
+        <p>     To finish the porting of <code>read</code>, we simply need to port the method
+    call to the new <code>.</code> syntax, and call on <code>self</code>.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -14,7 +14,7 @@ method read($file) {
+</span><span style="color: black">     # Read the file
+</span><span style="color: black">     my $contents = try { slurp($file) } orelse fail $!;
+</span><span style="color: black"> 
+</span><span style="color: red">-    $class-&gt;read_string( $contents )
+</span><span style="color: green">+    self.read_string($contents)
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Create an object from a string
+</span> </pre>
+    </section>
+    <section>
+        <h2> <code>write</code> gets the same treatment </h2>
+        <p>     Signatures, file writing logic replaced with <code>spurt</code>, use <code>fail</code>.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -68,14 +68,8 @@ sub clone {
+</span><span style="color: black"> END_PERL
+</span><span style="color: black"> 
+</span><span style="color: black"> # Save an object to a file
+</span><span style="color: red">-sub write {
+</span><span style="color: red">-    my $self = shift;
+</span><span style="color: red">-    my $file = shift or return $self-&gt;_error( 'No file name provided' );
+</span><span style="color: red">-
+</span><span style="color: red">-    # Write the file
+</span><span style="color: red">-    open( CSS, '&gt;'. $file ) or return $self-&gt;_error( "Failed to open file '$file' for writing: $!" );
+</span><span style="color: red">-    print CSS $self-&gt;write_string;
+</span><span style="color: red">-    close( CSS );
+</span><span style="color: green">+method write($file) {
+</span><span style="color: green">+    try { spurt($file, self.write_string) } orelse fail $!;
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Save an object to a string
+</span> </pre>
+    </section>
+    <section>
+        <h2> Holy <code>shift</code>! What's that do?! </h2>
+        <p>     Turns out <code>read_string</code> wants to work on both instances and classes.
+    We can re-write this idiom a bit more clearly - and not risk missing
+    out on any construction logic we might add to our class later.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -18,8 +18,8 @@ method read($file) {
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Create an object from a string
+</span><span style="color: red">-sub read_string {
+</span><span style="color: red">-    my $self = ref $_[0] ? shift : bless {}, shift;
+</span><span style="color: green">+method read_string {
+</span><span style="color: green">+    my $self = self // self.new;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Flatten whitespace and remove /* comment */ style comments
+</span><span style="color: black">     my $string = shift;
+</span> </pre>
+    </section>
+    <section>
+        <h2> 2 become 1 </h2>
+        <p>     The first thing that happens is duplicate whitespace and comments are
+    stripped. We can write this quite easily as a single pass over the
+    string. It gets less backslashy with Perl 6's regex syntax, too.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -18,13 +18,11 @@ method read($file) {
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Create an object from a string
+</span><span style="color: red">-method read_string {
+</span><span style="color: green">+method read_string($string) {
+</span><span style="color: black">     my $self = self // self.new;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Flatten whitespace and remove /* comment */ style comments
+</span><span style="color: red">-    my $string = shift;
+</span><span style="color: red">-    $string =~ tr/\n\t/  /;
+</span><span style="color: red">-    $string =~ s!/\*.*?\*\/!!g;
+</span><span style="color: green">+    $string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: black">     foreach ( grep { /\S/ } split /(?&lt;=\})/, $string ) {
+</span> </pre>
+    </section>
+    <section>
+        <h2> <code>is copy</code> </h2>
+        <p>     Parameters are passed read-only by default. This is important for a
+    range of optimizations, prevents various mistakes, and leads to less
+    action at a distnace. Here, though, we want our own copy to work on;
+    this allows the substitution to work out.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -18,7 +18,7 @@ method read($file) {
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Create an object from a string
+</span><span style="color: red">-method read_string($string) {
+</span><span style="color: green">+method read_string($string is copy) {
+</span><span style="color: black">     my $self = self // self.new;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Flatten whitespace and remove /* comment */ style comments
+</span> </pre>
+    </section>
+    <section>
+        <h2> <code>foreach</code> becomes <code>for</code> </h2>
+        <p>     There is no <code>foreach</code> keyword in Perl 6. <code>for</code> is always iterating a
+    list; the C-style for loop is now spelled <code>loop</code>. Also, we no longer
+    need parentheses around what we'll loop over.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -25,7 +25,7 @@ method read_string($string is copy) {
+</span><span style="color: black">     $string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: red">-    foreach ( grep { /\S/ } split /(?&lt;=\})/, $string ) {
+</span><span style="color: green">+    for grep { /\S/ } split /(?&lt;=\})/, $string {
+</span><span style="color: black">         unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
+</span><span style="color: black">             return $self-&gt;_error( "Invalid or unexpected style data '$_'" );
+</span><span style="color: black">         }
+</span> </pre>
+    </section>
+    <section>
+        <h2> Cuter <code>grep</code>; optional method call transform </h2>
+        <p>     Next, we can eliminate a closure by realizing that <code>grep</code> may receive
+    a regex directly in Perl 6. It can also be nice to rewrite this using
+    method syntax, which better conveys the order of operations.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -25,7 +25,7 @@ method read_string($string is copy) {
+</span><span style="color: black">     $string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: red">-    for grep { /\S/ } split /(?&lt;=\})/, $string {
+</span><span style="color: green">+    for $string.split(/(?&lt;=\})/).grep(/\S/) {
+</span><span style="color: black">         unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
+</span><span style="color: black">             return $self-&gt;_error( "Invalid or unexpected style data '$_'" );
+</span><span style="color: black">         }
+</span> </pre>
+    </section>
+    <section>
+        <h2> Saner lookaheads </h2>
+        <p>     The lookahead syntax has changed. It's a little longer - but a lot
+    easier to figure out what it means!
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -25,7 +25,7 @@ method read_string($string is copy) {
+</span><span style="color: black">     $string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: red">-    for $string.split(/(?&lt;=\})/).grep(/\S/) {
+</span><span style="color: green">+    for $string.split(/&lt;?after '}'&gt;/).grep(/\S/) {
+</span><span style="color: black">         unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
+</span><span style="color: black">             return $self-&gt;_error( "Invalid or unexpected style data '$_'" );
+</span><span style="color: black">         }
+</span> </pre>
+    </section>
+    <section>
+        <h2> <code>unless</code> goes parenless, use <code>fail</code> </h2>
+        <p>     The lack of need to put parentheses on <code>for</code> extends to conditionals
+    also. Then, we do the now-familiar error-reporting transformation.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -26,8 +26,8 @@ method read_string($string is copy) {
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: black">     for $string.split(/&lt;?after '}'&gt;/).grep(/\S/) {
+</span><span style="color: red">-        unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
+</span><span style="color: red">-            return $self-&gt;_error( "Invalid or unexpected style data '$_'" );
+</span><span style="color: green">+        unless /^\s*([^{]+?)\s*\{(.*)\}\s*$/ {
+</span><span style="color: green">+            fail "Invalid or unexpected style data '$_'";
+</span><span style="color: black">         }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split in such a way as to support grouped styles
+</span> </pre>
+    </section>
+    <section>
+        <h2> Regexes, spaced out </h2>
+        <p>     In Perl 6, spaces in regexes are just syntax. Put another way, <code>/x</code> is
+    the default. So, before we go porting, let's make it easier to read.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -26,7 +26,7 @@ method read_string($string is copy) {
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: black">     for $string.split(/&lt;?after '}'&gt;/).grep(/\S/) {
+</span><span style="color: red">-        unless /^\s*([^{]+?)\s*\{(.*)\}\s*$/ {
+</span><span style="color: green">+        unless /^ \s* ([^{]+?) \s* \{ (.*) \} \s* $/ {
+</span><span style="color: black">             fail "Invalid or unexpected style data '$_'";
+</span><span style="color: black">         }
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> Quoting rather than backslashing </h2>
+        <p>     You can put things in single, or double (interpolating) quotes in
+    Perl 6 regexes. While the backslash approach also works, I tend to
+    find the quotes more readable.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -26,7 +26,7 @@ method read_string($string is copy) {
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: black">     for $string.split(/&lt;?after '}'&gt;/).grep(/\S/) {
+</span><span style="color: red">-        unless /^ \s* ([^{]+?) \s* \{ (.*) \} \s* $/ {
+</span><span style="color: green">+        unless /^ \s* ([^{]+?) \s* '{' (.*) '}' \s* $/ {
+</span><span style="color: black">             fail "Invalid or unexpected style data '$_'";
+</span><span style="color: black">         }
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> Character class changes </h2>
+        <p>     We stole <code>[...]</code> for non-capturing groups, so character classes are
+    now <code>&lt;[...]&gt;</code>. Negating a character class now goes outside of it,
+    using <code>-</code>, thus giving <code>&lt;-[...]&gt;</code>. (You can actually add and subtract
+    them, set-like, within the <code>&lt;...&gt;</code>.)
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -26,7 +26,7 @@ method read_string($string is copy) {
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: black">     for $string.split(/&lt;?after '}'&gt;/).grep(/\S/) {
+</span><span style="color: red">-        unless /^ \s* ([^{]+?) \s* '{' (.*) '}' \s* $/ {
+</span><span style="color: green">+        unless /^ \s* (&lt;-[{]&gt;+?) \s* '{' (.*) '}' \s* $/ {
+</span><span style="color: black">             fail "Invalid or unexpected style data '$_'";
+</span><span style="color: black">         }
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> More whitespace fiddling </h2>
+        <p>     It's curious this is needed, as we tried to deal with multiple bits of
+    whitespace earlier. In fact, parsing this way makes things hard to
+    reason about generally. But for now, we'll just blindly port the line.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -33,7 +33,7 @@ method read_string($string is copy) {
+</span><span style="color: black">         # Split in such a way as to support grouped styles
+</span><span style="color: black">         my $style      = $1;
+</span><span style="color: black">         my $properties = $2;
+</span><span style="color: red">-        $style =~ s/\s{2,}/ /g;
+</span><span style="color: green">+        $style ~~ s:g/\s ** 2..*/ /;
+</span><span style="color: black">         my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
+</span><span style="color: black">         foreach ( @styles ) { $self-&gt;{$_} ||= {} }
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> Match variable changes </h2>
+        <p>     Positional matches are now numbered from 0, not 1. In fact, <code>$0</code> and
+    <code>$1</code> are really just <code>$/[0]</code> and <code>$/[1]</code>, where <code>$/</code> is a <code>Match</code>
+    object representing the match. <code>$0</code> and <code>$1</code> are objects too; we just
+    want strings, and apply the <code>~</code> stringification prefix.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -31,8 +31,8 @@ method read_string($string is copy) {
+</span><span style="color: black">         }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split in such a way as to support grouped styles
+</span><span style="color: red">-        my $style      = $1;
+</span><span style="color: red">-        my $properties = $2;
+</span><span style="color: green">+        my $style      = ~$0;
+</span><span style="color: green">+        my $properties = ~$1;
+</span><span style="color: black">         $style ~~ s:g/\s ** 2..*/ /;
+</span><span style="color: black">         my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
+</span><span style="color: black">         foreach ( @styles ) { $self-&gt;{$_} ||= {} }
+</span> </pre>
+    </section>
+    <section>
+        <h2> Familiar transforms </h2>
+        <p>     We dig into the next line by applying some familiar transforms: using
+    the method form to order the operations as they will happen, and then
+    passing the regex directly to grep.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -34,7 +34,7 @@ method read_string($string is copy) {
+</span><span style="color: black">         my $style      = ~$0;
+</span><span style="color: black">         my $properties = ~$1;
+</span><span style="color: black">         $style ~~ s:g/\s ** 2..*/ /;
+</span><span style="color: red">-        my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
+</span><span style="color: green">+        my @styles = $style.split(/\s*,\s*/).grep(/\S/).grep({ s/\s+/ /g; 1; });
+</span><span style="color: black">         foreach ( @styles ) { $self-&gt;{$_} ||= {} }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split into properties
+</span> </pre>
+    </section>
+    <section>
+        <h2> Regex syntax: easier rules </h2>
+        <p>     What chars are syntax in regexes, and which are literal? In Perl 6,
+    it's easy: any word characters are literal, and the rest are syntax.
+    This means we need to backslash or quote a comma.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -34,7 +34,7 @@ method read_string($string is copy) {
+</span><span style="color: black">         my $style      = ~$0;
+</span><span style="color: black">         my $properties = ~$1;
+</span><span style="color: black">         $style ~~ s:g/\s ** 2..*/ /;
+</span><span style="color: red">-        my @styles = $style.split(/\s*,\s*/).grep(/\S/).grep({ s/\s+/ /g; 1; });
+</span><span style="color: green">+        my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).grep({ s/\s+/ /g; 1; });
+</span><span style="color: black">         foreach ( @styles ) { $self-&gt;{$_} ||= {} }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split into properties
+</span> </pre>
+    </section>
+    <section>
+        <h2> The case of the always-true <code>grep</code> </h2>
+        <p>     The final use of <code>grep</code> is a little curious: it does a side-effect and
+    then always returns true. The reason? <code>s///</code> in Perl 5 returns how many
+    replacements were done, not the resulting string! In Perl 6, we give
+    you back the result; check <code>$/</code> after to see if anything got replaced.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -34,7 +34,7 @@ method read_string($string is copy) {
+</span><span style="color: black">         my $style      = ~$0;
+</span><span style="color: black">         my $properties = ~$1;
+</span><span style="color: black">         $style ~~ s:g/\s ** 2..*/ /;
+</span><span style="color: red">-        my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).grep({ s/\s+/ /g; 1; });
+</span><span style="color: green">+        my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).map({ s:g/\s+/ / });
+</span><span style="color: black">         foreach ( @styles ) { $self-&gt;{$_} ||= {} }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split into properties
+</span> </pre>
+    </section>
+    <section>
+        <h2> Behaving like a hash </h2>
+        <p>     Perl 6 objects are not just hashes underneath. They are an opaque data
+    structure, efficiently laid out in memory and - post-optimization -
+    accessed by cheap pointer offsets. But here, we want to behave like a
+    hash. So we declare a hash attribute, and forward calls on us to the
+    various hash-y methods onwards to it.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -2,6 +2,8 @@ use v6;
+</span><span style="color: black"> 
+</span><span style="color: black"> class CSS::Tiny:ver&lt;1.19&gt;;
+</span><span style="color: black"> 
+</span><span style="color: green">+has %!styles handles &lt;at_key assign_key list pairs keys values kv&gt;;
+</span><span style="color: green">+
+</span><span style="color: black"> # Create an object from a file
+</span><span style="color: black"> method read($file) {
+</span><span style="color: black">     # Check the file
+</span> </pre>
+    </section>
+    <section>
+        <h2> Implicit dereferencing </h2>
+        <p>     Since we have now made hash access related methods delegate to our
+    hash attribute, and since no explicit dereference is needed in Perl
+    6, the initialization loop can become a little simpler.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -37,7 +37,7 @@ method read_string($string is copy) {
+</span><span style="color: black">         my $properties = ~$1;
+</span><span style="color: black">         $style ~~ s:g/\s ** 2..*/ /;
+</span><span style="color: black">         my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).map({ s:g/\s+/ / });
+</span><span style="color: red">-        foreach ( @styles ) { $self-&gt;{$_} ||= {} }
+</span><span style="color: green">+        for @styles { $self{$_} //= {} }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split into properties
+</span><span style="color: black">         foreach ( grep { /\S/ } split /\;/, $properties ) {
+</span> </pre>
+    </section>
+    <section>
+        <h2> <code>write_string</code> becomes a method </h2>
+        <p>     Once again, the <code>shift</code> of <code>$self</code> goes away
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -73,8 +73,7 @@ method write($file) {
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Save an object to a string
+</span><span style="color: red">-sub write_string {
+</span><span style="color: red">-    my $self = shift;
+</span><span style="color: green">+method write_string {
+</span><span style="color: black"> 
+</span><span style="color: black">     # Iterate over the styles
+</span><span style="color: black">     # Note: We use 'reverse' in the sort to avoid a special case related
+</span> </pre>
+    </section>
+    <section>
+        <h2> <code>for</code> loops with pointy blocks </h2>
+        <p>     To name the loop variable, rather than having it in <code>$_</code>, we use the
+    pointy block syntax. This is also the way a lambda is written in Perl
+    6. We also update some <code>$self</code> usages to <code>self</code>.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -80,10 +80,10 @@ method write_string {
+</span><span style="color: black">     # to A:hover even though the file ends up backwards and looks funny.
+</span><span style="color: black">     # See http://www.w3.org/TR/CSS2/selector.html#dynamic-pseudo-classes
+</span><span style="color: black">     my $contents = '';
+</span><span style="color: red">-    foreach my $style ( reverse sort keys %$self ) {
+</span><span style="color: green">+    for self.keys.sort.reverse -&gt; $style {
+</span><span style="color: black">         $contents .= "$style {\n";
+</span><span style="color: red">-        foreach ( sort keys %{ $self-&gt;{$style} } ) {
+</span><span style="color: red">-            $contents .= "\t" . lc($_) . ": $self-&gt;{$style}-&gt;{$_};\n";
+</span><span style="color: green">+        for self{$style}.keys.sort {
+</span><span style="color: green">+            $contents .= "\t" . lc($_) . ": self{$style}{$_};\n";
+</span><span style="color: black">         }
+</span><span style="color: black">         $contents .= "}\n";
+</span><span style="color: black">     }
+</span> </pre>
+    </section>
+    <section>
+        <h2> Interpolation changes </h2>
+        <p>     Since blocks now interpolate in Perl 6 strings, we need to escape the
+    <code>{</code> inside of the string (we could have used an alternative quoting
+    construct too). Also, <code>self</code> will not interpolate; here we put block
+    interpolation to good use.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -81,9 +81,9 @@ method write_string {
+</span><span style="color: black">     # See http://www.w3.org/TR/CSS2/selector.html#dynamic-pseudo-classes
+</span><span style="color: black">     my $contents = '';
+</span><span style="color: black">     for self.keys.sort.reverse -&gt; $style {
+</span><span style="color: red">-        $contents .= "$style {\n";
+</span><span style="color: green">+        $contents .= "$style \{\n";
+</span><span style="color: black">         for self{$style}.keys.sort {
+</span><span style="color: red">-            $contents .= "\t" . lc($_) . ": self{$style}{$_};\n";
+</span><span style="color: green">+            $contents .= "\t" . lc($_) . ": {self{$style}{$_}};\n";
+</span><span style="color: black">         }
+</span><span style="color: black">         $contents .= "}\n";
+</span><span style="color: black">     }
+</span> </pre>
+    </section>
+    <section>
+        <h2> Concatenation is now <code>~</code> </h2>
+        <p>     Since the <code>.</code> was stolen for method calls, concatenation is now done
+    with the <code>~</code> operator.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -81,11 +81,11 @@ method write_string {
+</span><span style="color: black">     # See http://www.w3.org/TR/CSS2/selector.html#dynamic-pseudo-classes
+</span><span style="color: black">     my $contents = '';
+</span><span style="color: black">     for self.keys.sort.reverse -&gt; $style {
+</span><span style="color: red">-        $contents .= "$style \{\n";
+</span><span style="color: green">+        $contents ~= "$style \{\n";
+</span><span style="color: black">         for self{$style}.keys.sort {
+</span><span style="color: red">-            $contents .= "\t" . lc($_) . ": {self{$style}{$_}};\n";
+</span><span style="color: green">+            $contents ~= "\t" ~ lc($_) ~ ": {self{$style}{$_}};\n";
+</span><span style="color: black">         }
+</span><span style="color: red">-        $contents .= "}\n";
+</span><span style="color: green">+        $contents ~= "}\n";
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: black">     return $contents;
+</span> </pre>
+    </section>
+    <section>
+        <h2> Finally, the <code>clone</code> method needs work </h2>
+        <p>     First, we simplify: remove the <code>Clone</code> module reference and <code>eval</code>, and
+    keep the code.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -51,10 +51,8 @@ method read_string($string is copy) {
+</span><span style="color: black">     $self
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: red">-# Copy an object, using Clone.pm if available
+</span><span style="color: red">-BEGIN { local $@; eval "use Clone 'clone';"; eval &lt;&lt;'END_PERL' if $@; }
+</span><span style="color: red">-sub clone {
+</span><span style="color: red">-    my $self = shift;
+</span><span style="color: green">+# Copy an object
+</span><span style="color: green">+method clone {
+</span><span style="color: black">     my $copy = ref($self)-&gt;new;
+</span><span style="color: black">     foreach my $key ( keys %$self ) {
+</span><span style="color: black">         my $section = $self-&gt;{$key};
+</span><span style="color: teal">@@ -65,7 +63,6 @@ sub clone {
+</span><span style="color: black">     }
+</span><span style="color: black">     $copy;
+</span><span style="color: black"> }
+</span><span style="color: red">-END_PERL
+</span><span style="color: black"> 
+</span><span style="color: black"> # Save an object to a file
+</span><span style="color: black"> method write($file) {
+</span> </pre>
+    </section>
+    <section>
+        <h2> The copy logic can be written more simply </h2>
+        <p>     Using .kv to go over the keys and values easily, and then for copying
+    the inner hash, just rely on the hash constructor and flattening to
+    do the work.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -53,15 +53,11 @@ method read_string($string is copy) {
+</span><span style="color: black"> 
+</span><span style="color: black"> # Copy an object
+</span><span style="color: black"> method clone {
+</span><span style="color: red">-    my $copy = ref($self)-&gt;new;
+</span><span style="color: red">-    foreach my $key ( keys %$self ) {
+</span><span style="color: red">-        my $section = $self-&gt;{$key};
+</span><span style="color: red">-        $copy-&gt;{$key} = {};
+</span><span style="color: red">-        foreach ( keys %$section ) {
+</span><span style="color: red">-            $copy-&gt;{$key}-&gt;{$_} = $section-&gt;{$_};
+</span><span style="color: red">-        }
+</span><span style="color: red">-    }
+</span><span style="color: red">-    $copy;
+</span><span style="color: green">+    my %styles_copy;
+</span><span style="color: green">+    for %!styles.kv -&gt; $style, %properties {
+</span><span style="color: green">+        %styles_copy{$style} = { %properties };
+</span><span style="color: green">+    }
+</span><span style="color: green">+    self.new(styles =&gt; %styles_copy)
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Save an object to a file
+</span> </pre>
+    </section>
+    <section>
+        <h2> The typical <code>1;</code> at module end can go </h2>
+        <p>     We simply don't need this in Perl 6. In fact, it even reminds us so by
+    pointing out we have a useless use of the constant 1 in sink (void)
+    context.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -95,5 +95,3 @@ method xhtml {
+</span><span style="color: black">     my $css = self.write_string or return '';
+</span><span style="color: black">     return "&lt;style type=\"text/css\"&gt;\n/* &lt;![CDATA[ */\n{$css}/* ]]&gt; */\n&lt;/style&gt;";
+</span><span style="color: black"> }
+</span><span style="color: red">-
+</span><span style="color: red">-1;
+</span> </pre>
+    </section>
+    <section>
+        <h2> Stub the grammar </h2>
+        <p>     A <code>grammar</code> is written a lot like a <code>class</code>. Inside, we typically put
+    <code>token</code>s or <code>rule</code>s, which indicate how we parse. The <code>TOP</code> rule is
+    the entry point to the grammar.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -23,6 +23,12 @@ method read($file) {
+</span><span style="color: black"> method read_string($string is copy) {
+</span><span style="color: black">     my $self = self // self.new;
+</span><span style="color: black"> 
+</span><span style="color: green">+    my grammar SimpleCSS {
+</span><span style="color: green">+        token TOP {
+</span><span style="color: green">+            &lt;style&gt;* [ $ || { die "Failed to parse CSS" } ]
+</span><span style="color: green">+        }
+</span><span style="color: green">+    }
+</span><span style="color: green">+
+</span><span style="color: black">     # Flatten whitespace and remove /* comment */ style comments
+</span><span style="color: black">     $string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> Simply parsing a <code>style</code> </h2>
+        <p>     We'll capture the name of the style and then its properties. Laying
+    out the <code>rule</code> the way a CSS file typically looks is good for
+    readability.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -27,6 +27,11 @@ method read_string($string is copy) {
+</span><span style="color: black">         token TOP {
+</span><span style="color: black">             &lt;style&gt;* [ $ || { die "Failed to parse CSS" } ]
+</span><span style="color: black">         }
+</span><span style="color: green">+        token style {
+</span><span style="color: green">+            \s* (&lt;-[{]&gt;+) '{'
+</span><span style="color: green">+                (&lt;-[}]&gt;*)
+</span><span style="color: green">+            '}' \s*
+</span><span style="color: green">+        }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: black">     # Flatten whitespace and remove /* comment */ style comments
+</span> </pre>
+    </section>
+    <section>
+        <h2> Start moving towards the grammar </h2>
+        <p>     We get a tree of match objects from a grammar. We'll go over the list
+    of styles, and get the captures.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -38,14 +38,10 @@ method read_string($string is copy) {
+</span><span style="color: black">     $string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
+</span><span style="color: black"> 
+</span><span style="color: black">     # Split into styles
+</span><span style="color: red">-    for $string.split(/&lt;?after '}'&gt;/).grep(/\S/) {
+</span><span style="color: red">-        unless /^ \s* (&lt;-[{]&gt;+?) \s* '{' (.*) '}' \s* $/ {
+</span><span style="color: red">-            fail "Invalid or unexpected style data '$_'";
+</span><span style="color: red">-        }
+</span><span style="color: red">-
+</span><span style="color: green">+    for SimpleCSS.parse($string)&lt;style&gt;.list -&gt; $s {
+</span><span style="color: black">         # Split in such a way as to support grouped styles
+</span><span style="color: red">-        my $style      = ~$0;
+</span><span style="color: red">-        my $properties = ~$1;
+</span><span style="color: green">+        my $style      = ~$s[0];
+</span><span style="color: green">+        my $properties = ~$s[1];
+</span><span style="color: black">         $style ~~ s:g/\s ** 2..*/ /;
+</span><span style="color: black">         my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).map({ s:g/\s+/ / });
+</span><span style="color: black">         for @styles { $self{$_} //= {} }
+</span> </pre>
+    </section>
+    <section>
+        <h2> Parse style names properly </h2>
+        <p>     A little more effort than before, but the <code>%%</code> quantifier modifier -
+    which specifies what comes between quantified things - helps a lot.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -28,10 +28,11 @@ method read_string($string is copy) {
+</span><span style="color: black">             &lt;style&gt;* [ $ || { die "Failed to parse CSS" } ]
+</span><span style="color: black">         }
+</span><span style="color: black">         token style {
+</span><span style="color: red">-            \s* (&lt;-[{]&gt;+) '{'
+</span><span style="color: green">+            \s* (&lt;style_name&gt;+ %% [\s* ',' \s* ]) \s* '{'
+</span><span style="color: black">                 (&lt;-[}]&gt;*)
+</span><span style="color: black">             '}' \s*
+</span><span style="color: black">         }
+</span><span style="color: green">+        token style_name { [ &lt;-[\s,{]&gt;+ ]+ % [\s+] }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: black">     # Flatten whitespace and remove /* comment */ style comments
+</span> </pre>
+    </section>
+    <section>
+        <h2> Use the new <code>style_name</code> from the grammar </h2>
+        <p>     Since the grammar is now extracting style names, we can just use them.
+    Also avoid whitespace re-parsing.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -41,10 +41,9 @@ method read_string($string is copy) {
+</span><span style="color: black">     # Split into styles
+</span><span style="color: black">     for SimpleCSS.parse($string)&lt;style&gt;.list -&gt; $s {
+</span><span style="color: black">         # Split in such a way as to support grouped styles
+</span><span style="color: red">-        my $style      = ~$s[0];
+</span><span style="color: green">+        my $style      = $s[0];
+</span><span style="color: black">         my $properties = ~$s[1];
+</span><span style="color: red">-        $style ~~ s:g/\s ** 2..*/ /;
+</span><span style="color: red">-        my @styles = $style.split(/\s* ',' \s*/).grep(/\S/).map({ s:g/\s+/ / });
+</span><span style="color: green">+        my @styles     = $style&lt;style_name&gt;.map(~*);
+</span><span style="color: black">         for @styles { $self{$_} //= {} }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split into properties
+</span> </pre>
+    </section>
+    <section>
+        <h2> Parsing properties properly </h2>
+        <p>     Now we update the grammar to identify the property keys/values also.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -29,10 +29,13 @@ method read_string($string is copy) {
+</span><span style="color: black">         }
+</span><span style="color: black">         token style {
+</span><span style="color: black">             \s* (&lt;style_name&gt;+ %% [\s* ',' \s* ]) \s* '{'
+</span><span style="color: red">-                (&lt;-[}]&gt;*)
+</span><span style="color: green">+                \s* (&lt;property&gt;+ %% [\s* ';' \s* ]) \s*
+</span><span style="color: black">             '}' \s*
+</span><span style="color: black">         }
+</span><span style="color: black">         token style_name { [ &lt;-[\s,{]&gt;+ ]+ % [\s+] }
+</span><span style="color: green">+        token property {
+</span><span style="color: green">+            (&lt;[\w.-]&gt;+) \s* ':' \s* (&lt;-[\s;]&gt;+)
+</span><span style="color: green">+        }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: black">     # Flatten whitespace and remove /* comment */ style comments
+</span> </pre>
+    </section>
+    <section>
+        <h2> Clean up the property parsing </h2>
+        <p>     Now all the information we need is in the <code>Match</code> objects.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -45,16 +45,13 @@ method read_string($string is copy) {
+</span><span style="color: black">     for SimpleCSS.parse($string)&lt;style&gt;.list -&gt; $s {
+</span><span style="color: black">         # Split in such a way as to support grouped styles
+</span><span style="color: black">         my $style      = $s[0];
+</span><span style="color: red">-        my $properties = ~$s[1];
+</span><span style="color: green">+        my $properties = $s[1];
+</span><span style="color: black">         my @styles     = $style&lt;style_name&gt;.map(~*);
+</span><span style="color: black">         for @styles { $self{$_} //= {} }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split into properties
+</span><span style="color: red">-        for $properties.split(';').grep(/\S/) {
+</span><span style="color: red">-            unless /^ \s* (&lt;[\w._-]&gt;+) \s* ':' \s* (.*?) \s* $/ {
+</span><span style="color: red">-                fail "Invalid or unexpected property '$_' in style '$style'";
+</span><span style="color: red">-            }
+</span><span style="color: red">-            for @styles { $self{$_}{lc $0} = ~$1 }
+</span><span style="color: green">+        for $properties&lt;property&gt;.list -&gt; $p {
+</span><span style="color: green">+            for @styles { $self{$_}{lc $p[0]} = ~$p[1] }
+</span><span style="color: black">         }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> Refactoring </h2>
+        <p>     We no longer really need the positional captures; we can simply use
+    the named ones for styles and properties.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -28,8 +28,8 @@ method read_string($string is copy) {
+</span><span style="color: black">             &lt;style&gt;* [ $ || { die "Failed to parse CSS" } ]
+</span><span style="color: black">         }
+</span><span style="color: black">         token style {
+</span><span style="color: red">-            \s* (&lt;style_name&gt;+ %% [\s* ',' \s* ]) \s* '{'
+</span><span style="color: red">-                \s* (&lt;property&gt;+ %% [\s* ';' \s* ]) \s*
+</span><span style="color: green">+            \s* &lt;style_name&gt;+ %% [\s* ',' \s* ] \s* '{'
+</span><span style="color: green">+                \s* &lt;property&gt;+ %% [\s* ';' \s* ] \s*
+</span><span style="color: black">             '}' \s*
+</span><span style="color: black">         }
+</span><span style="color: black">         token style_name { [ &lt;-[\s,{]&gt;+ ]+ % [\s+] }
+</span><span style="color: teal">@@ -44,13 +44,11 @@ method read_string($string is copy) {
+</span><span style="color: black">     # Split into styles
+</span><span style="color: black">     for SimpleCSS.parse($string)&lt;style&gt;.list -&gt; $s {
+</span><span style="color: black">         # Split in such a way as to support grouped styles
+</span><span style="color: red">-        my $style      = $s[0];
+</span><span style="color: red">-        my $properties = $s[1];
+</span><span style="color: red">-        my @styles     = $style&lt;style_name&gt;.map(~*);
+</span><span style="color: green">+        my @styles = $s&lt;style_name&gt;.map(~*);
+</span><span style="color: black">         for @styles { $self{$_} //= {} }
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split into properties
+</span><span style="color: red">-        for $properties&lt;property&gt;.list -&gt; $p {
+</span><span style="color: green">+        for $s&lt;property&gt;.list -&gt; $p {
+</span><span style="color: black">             for @styles { $self{$_}{lc $p[0]} = ~$p[1] }
+</span><span style="color: black">         }
+</span><span style="color: black">     }
+</span> </pre>
+    </section>
+    <section>
+        <h2> Prefer names for clarity </h2>
+        <p>     We still have two more positional captures. Let's name them, which
+    helps make it clearer what the data is.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -34,7 +34,7 @@ method read_string($string is copy) {
+</span><span style="color: black">         }
+</span><span style="color: black">         token style_name { [ &lt;-[\s,{]&gt;+ ]+ % [\s+] }
+</span><span style="color: black">         token property {
+</span><span style="color: red">-            (&lt;[\w.-]&gt;+) \s* ':' \s* (&lt;-[\s;]&gt;+)
+</span><span style="color: green">+            $&lt;key&gt;=[&lt;[\w.-]&gt;+] \s* ':' \s* $&lt;val&gt;=[&lt;-[\s;]&gt;+]
+</span><span style="color: black">         }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: teal">@@ -49,7 +49,7 @@ method read_string($string is copy) {
+</span><span style="color: black"> 
+</span><span style="color: black">         # Split into properties
+</span><span style="color: black">         for $s&lt;property&gt;.list -&gt; $p {
+</span><span style="color: red">-            for @styles { $self{$_}{lc $p[0]} = ~$p[1] }
+</span><span style="color: green">+            for @styles { $self{$_}{lc $p&lt;key&gt;} = ~$p&lt;val&gt; }
+</span><span style="color: black">         }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span> </pre>
+    </section>
+    <section>
+        <h2> Whitespace rules! </h2>
+        <p>     If we introduce a token named <code>&lt;ws&gt;</code> and use <code>rule</code> instead of
+    <code>token</code>, then <code>&lt;.ws&gt;</code> calls are inserted automatically for us where
+    the regex has whitespace.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -33,9 +33,10 @@ method read_string($string is copy) {
+</span><span style="color: black">             '}' \s*
+</span><span style="color: black">         }
+</span><span style="color: black">         token style_name { [ &lt;-[\s,{]&gt;+ ]+ % [\s+] }
+</span><span style="color: red">-        token property {
+</span><span style="color: red">-            $&lt;key&gt;=[&lt;[\w.-]&gt;+] \s* ':' \s* $&lt;val&gt;=[&lt;-[\s;]&gt;+]
+</span><span style="color: green">+        rule property {
+</span><span style="color: green">+            $&lt;key&gt;=[&lt;[\w.-]&gt;+] ':' $&lt;val&gt;=[&lt;-[\s;]&gt;+]
+</span><span style="color: black">         }
+</span><span style="color: green">+        token ws { \s* }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: black">     # Flatten whitespace and remove /* comment */ style comments
+</span> </pre>
+    </section>
+    <section>
+        <h2> Further whitespace cleanups </h2>
+        <p>  </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -24,13 +24,13 @@ method read_string($string is copy) {
+</span><span style="color: black">     my $self = self // self.new;
+</span><span style="color: black"> 
+</span><span style="color: black">     my grammar SimpleCSS {
+</span><span style="color: red">-        token TOP {
+</span><span style="color: red">-            &lt;style&gt;* [ $ || { die "Failed to parse CSS" } ]
+</span><span style="color: green">+        rule TOP {
+</span><span style="color: green">+            &lt;?&gt; &lt;style&gt;* [ $ || { die "Failed to parse CSS" } ]
+</span><span style="color: black">         }
+</span><span style="color: red">-        token style {
+</span><span style="color: red">-            \s* &lt;style_name&gt;+ %% [\s* ',' \s* ] \s* '{'
+</span><span style="color: red">-                \s* &lt;property&gt;+ %% [\s* ';' \s* ] \s*
+</span><span style="color: red">-            '}' \s*
+</span><span style="color: green">+        rule style {
+</span><span style="color: green">+            &lt;style_name&gt;+ %% [ &lt;?&gt; ',' ] '{'
+</span><span style="color: green">+                &lt;property&gt;+ %% [ &lt;?&gt; ';' ]
+</span><span style="color: green">+            '}'
+</span><span style="color: black">         }
+</span><span style="color: black">         token style_name { [ &lt;-[\s,{]&gt;+ ]+ % [\s+] }
+</span><span style="color: black">         rule property {
+</span> </pre>
+    </section>
+    <section>
+        <h2> Moving comment handling into the grammar </h2>
+        <p>     Comments are, really, just a funny kind of whitespace. We can move the
+    comment handling into the grammar also - meaning we now are doing a
+    1-pass parse of the CSS!
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -36,12 +36,9 @@ method read_string($string is copy) {
+</span><span style="color: black">         rule property {
+</span><span style="color: black">             $&lt;key&gt;=[&lt;[\w.-]&gt;+] ':' $&lt;val&gt;=[&lt;-[\s;]&gt;+]
+</span><span style="color: black">         }
+</span><span style="color: red">-        token ws { \s* }
+</span><span style="color: green">+        token ws { \s* | '/*' .+? '*/' }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: red">-    # Flatten whitespace and remove /* comment */ style comments
+</span><span style="color: red">-    $string ~~ s:g/ \s ** 2..* | '/*' .+? '*/' / /;
+</span><span style="color: red">-
+</span><span style="color: black">     # Split into styles
+</span><span style="color: black">     for SimpleCSS.parse($string)&lt;style&gt;.list -&gt; $s {
+</span><span style="color: black">         # Split in such a way as to support grouped styles
+</span> </pre>
+    </section>
+    <section>
+        <h2> Immutable too! </h2>
+        <p>     Earlier we had to add <code>is copy</code>, since we were changing <code>$string</code> as
+    our first pass. Now we don't do that, so the <code>is copy</code> can go away.
+ </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -20,7 +20,7 @@ method read($file) {
+</span><span style="color: black"> }
+</span><span style="color: black"> 
+</span><span style="color: black"> # Create an object from a string
+</span><span style="color: red">-method read_string($string is copy) {
+</span><span style="color: green">+method read_string($string) {
+</span><span style="color: black">     my $self = self // self.new;
+</span><span style="color: black"> 
+</span><span style="color: black">     my grammar SimpleCSS {
+</span> </pre>
+    </section>
+    <section>
+        <h2> Finally, make the comments match reality </h2>
+        <p>  </p>
+        <pre style="text-align: left"><strong>Tiny.pm</strong>
+<span style="color: teal">@@ -39,13 +39,13 @@ method read_string($string) {
+</span><span style="color: black">         token ws { \s* | '/*' .+? '*/' }
+</span><span style="color: black">     }
+</span><span style="color: black"> 
+</span><span style="color: red">-    # Split into styles
+</span><span style="color: green">+    # Parse each style.
+</span><span style="color: black">     for SimpleCSS.parse($string)&lt;style&gt;.list -&gt; $s {
+</span><span style="color: red">-        # Split in such a way as to support grouped styles
+</span><span style="color: green">+        # Initialize empty hash per style.
+</span><span style="color: black">         my @styles = $s&lt;style_name&gt;.map(~*);
+</span><span style="color: black">         for @styles { $self{$_} //= {} }
+</span><span style="color: black"> 
+</span><span style="color: red">-        # Split into properties
+</span><span style="color: green">+        # Add properties.
+</span><span style="color: black">         for $s&lt;property&gt;.list -&gt; $p {
+</span><span style="color: black">             for @styles { $self{$_}{lc $p&lt;key&gt;} = ~$p&lt;val&gt; }
+</span><span style="color: black">         }
+</span> </pre>
+    </section>
+
+
+				<section>
+					<h2>Results</h2>
+                    
+                    <p>Started with 131 lines, ended up with 100.</p>
+                    
+                    <p>Initial port - not using grammars - in some ways a fairly
+                    mechanical set of steps; after a while, they will become quite
+                    natural and - in some cases - maybe even partially automatable.</p>
+                    
+                    <p>The move to a grammar needed some more skills, but led to an
+                    algorithmic improvement to the code: rather than making multiple
+                    passes through the data, we make a single one.</p>
+                    
+                    <p>We also better separated concerns better; the parsing was
+                    neatly decoupled from the building up of the result hash thanks
+                    to grammars and <code>Match</code> objects.</p>
+				</section>
+                
+                <section>
+                    <h2>v5</h2>
+                    
+                    <p>One exciting direction for aiding porting is the <code>v5</code>
+                    module.</p>
+                    
+                    <p>Can mix Perl 5 and Perl 6 within a single file, meaning that a
+                    bit can be ported at a time</p>
+                    
+                    <p>How successful this approach will be depends on the module, and
+                    if the port is mostly transliteration or needs a rethink of the
+                    module's API</p>
+                </section>
+                
+                <section>
+                    <h2>Conclusions</h2>
+                    
+                    <p>Perl 6 is ready for many kinds of modules to be ported to it</p>
+                    
+                    <p>It's also a great way to learn Perl 6</p>
+                    
+                    <p>Porting the test suite first can allow working test-first on
+                    the port also</p>
+                </section>
+
+                <section>
+                    <h2>Go forth and port!</h2>
+                    
+                    <p>Thanks for listening!</p>
+                    
+                    <p>Have fun!</p>
+                </section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+				center: true,
+                
+                width: 960,
+                height: 700,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'none',
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
